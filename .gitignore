@@ -1,0 +1,26 @@
+HELP.md
+
+### Maven ###
+target/
+.mvn
+mvnw*
+.m2/*
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### AWS Credentials ###
+.aws/
+pratik_accessKeys.csv
+
+### VS Code ###
+.vscode
+
+### MacOS ###
+.DS_Store
