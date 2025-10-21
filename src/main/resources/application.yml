@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: ${APP_NAME:demo}
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/adoptions}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+  autoconfigure:
+    exclude:
+      - org.springframework.ai.model.bedrock.titan.autoconfigure.BedrockTitanEmbeddingAutoConfiguration
+  ai:
+    bedrock:
+      aws:
+        region: ${AWS_REGION:us-east-1}
+        access-key: ${AWS_ACCESS_KEY_ID:}
+        secret-key: ${AWS_SECRET_ACCESS_KEY:}
+      converse:
+        chat:
+          enabled: ${BEDROCK_CHAT_ENABLED:true}
+          model: ${BEDROCK_CHAT_MODEL:amazon.nova-micro-v1:0}
+      cohere:
+        embedding:
+          enabled: ${BEDROCK_EMBEDDING_ENABLED:true}
+          model: ${BEDROCK_EMBEDDING_MODEL:cohere.embed-english-v3}
