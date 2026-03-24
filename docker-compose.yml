@@ -1,17 +1,61 @@
+# =============================================================================
+# DOCKER COMPOSE — defines the PostgreSQL database service for local development.
+#
+# WHY Docker Compose instead of installing PostgreSQL natively?
+#   — Reproducibility: every developer gets the exact same Postgres version (14)
+#     with the exact same initial data, regardless of their OS.
+#   — Isolation: doesn't conflict with other Postgres instances on the machine.
+#   — Easy reset: `docker compose down --volumes` wipes everything for a clean start.
+#   — Matches production patterns (containerized databases in ECS/Kubernetes).
+#
+# WHY a single service (just Postgres) and not the whole app?
+#   — The Spring Boot app needs AWS credentials and runs via Maven (mvnw),
+#     which is easier to debug outside a container. Dockerizing the app would
+#     add complexity (multi-stage build, credential injection) with little benefit
+#     during development. In production, both would be containerized.
+# =============================================================================
+
 version: '3.8'
 
 services:
   postgres:
+    # WHY postgres:14 instead of :latest or :16?
+    #   — Pinning to a specific major version avoids surprise breaking changes.
+    #   — Postgres 14 has mature PGVector support and is widely used in production.
+    #   — :latest could pull Postgres 17 tomorrow and break compatibility.
     image: postgres:14
+
+    # Named container for easy reference in Makefile commands (docker logs dog-adoption-db).
     container_name: dog-adoption-db
+
+    # Map container port 5432 to host port 5432 so the Spring Boot app
+    # (running on the host) can connect via jdbc:postgresql://localhost:5432/adoptions.
     ports:
       - "5432:5432"
+
+    # Environment variables that Postgres reads on first boot to create the database and user.
+    # These match the spring.datasource.* values in application.yml.
     environment:
       POSTGRES_DB: adoptions
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+
+    # Mount the schema.sql file into Postgres's init directory.
+    # On FIRST start only, Postgres executes all .sql/.sh files in /docker-entrypoint-initdb.d
+    # alphabetically. This creates the dog table and seeds data without manual intervention.
+    #
+    # WHY a volume mount instead of a COPY in a custom Dockerfile?
+    #   — Simpler: no need to maintain a separate Dockerfile for the database.
+    #   — Live: changes to schema.sql are picked up on next fresh container start
+    #     (after `docker compose down --volumes`).
     volumes:
       - ./src/main/resources/static/sql:/docker-entrypoint-initdb.d
+
+    # Health check: Makefile targets use this to wait until Postgres is accepting connections
+    # before starting the Spring Boot app. Without this, the app might start before the DB
+    # is ready and fail with "Connection refused" errors.
+    #
+    # pg_isready is a Postgres utility that returns 0 when the server is accepting connections.
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s

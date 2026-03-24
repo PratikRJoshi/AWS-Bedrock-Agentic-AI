@@ -1,24 +1,109 @@
+# =============================================================================
+# SPRING BOOT APPLICATION CONFIGURATION
+#
+# This YAML file is the central configuration for the entire application.
+# Spring Boot reads it at startup and uses it to auto-configure beans.
+#
+# PATTERN: ${ENV_VAR:default_value}
+#   — Reads from environment variable first; falls back to the default if unset.
+#   — WHY? Lets the same code run in dev (defaults) and prod (env vars from secrets
+#     manager / Kubernetes / ECS task definitions) without code changes.
+# =============================================================================
+
 spring:
   application:
+    # Human-readable app name — appears in logs, metrics, and actuator endpoints.
     name: ${APP_NAME:demo}
+
+  # ---------------------------------------------------------------------------
+  # DATABASE CONFIGURATION
+  #
+  # Configures the JDBC DataSource used by both Spring Data JDBC (for the Dog
+  # table) and Spring AI's PGVector VectorStore (for the embedding table).
+  #
+  # WHY PostgreSQL instead of H2/SQLite?
+  #   — PostgreSQL supports the PGVector extension, which adds the 'vector' column
+  #     type and similarity search operators. H2 and SQLite have no vector support.
+  #   — PostgreSQL is production-grade: ACID, concurrent connections, scaling.
+  #
+  # WHY a single datasource for both relational data AND vectors?
+  #   — Operational simplicity: one database to manage, back up, and monitor.
+  #   — Enables SQL JOINs between relational dog data and vector search results.
+  #   — Trade-off: a dedicated vector DB (Pinecone, Weaviate) scales better for
+  #     billions of vectors, but PGVector is excellent for moderate-scale RAG.
+  # ---------------------------------------------------------------------------
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/adoptions}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+
+  # ---------------------------------------------------------------------------
+  # AUTO-CONFIGURATION EXCLUSION
+  #
+  # Spring AI auto-detects all Bedrock model starters on the classpath and tries
+  # to configure them. We exclude Titan's embedding auto-config because we're
+  # using Cohere for embeddings instead.
+  #
+  # WHY Cohere embed-english-v3 instead of Amazon Titan Embedding?
+  #   — Cohere v3 produces higher quality embeddings for English text (benchmarked
+  #     on MTEB). It's also specifically tuned for retrieval/search use cases.
+  #   — Titan Embedding is a general-purpose alternative but scores lower on
+  #     retrieval benchmarks at the time of this project.
+  #   — Without this exclusion, Spring would try to create BOTH embedding beans
+  #     and fail due to ambiguity (two EmbeddingModel beans, no @Primary).
+  # ---------------------------------------------------------------------------
   autoconfigure:
     exclude:
       - org.springframework.ai.model.bedrock.titan.autoconfigure.BedrockTitanEmbeddingAutoConfiguration
+
+  # ---------------------------------------------------------------------------
+  # SPRING AI — AWS BEDROCK CONFIGURATION
+  #
+  # This section configures two AI models accessed via AWS Bedrock:
+  #   1. A CHAT model (for generating natural language responses)
+  #   2. An EMBEDDING model (for converting text into vectors for semantic search)
+  # ---------------------------------------------------------------------------
   ai:
     bedrock:
       aws:
+        # AWS region where Bedrock models are deployed.
+        # us-east-1 has the widest model availability on Bedrock.
         region: ${AWS_REGION:us-east-1}
+        # AWS IAM credentials for authenticating Bedrock API calls.
+        # In production, use IAM roles (instance profiles / ECS task roles) instead
+        # of hardcoded keys. These env vars are for local development only.
         access-key: ${AWS_ACCESS_KEY_ID:}
         secret-key: ${AWS_SECRET_ACCESS_KEY:}
+
+      # --- CHAT MODEL (for generating conversational responses) ---
       converse:
         chat:
           enabled: ${BEDROCK_CHAT_ENABLED:true}
+          # Amazon Nova Micro v1 — a fast, low-cost model ideal for simple Q&A.
+          #
+          # WHY Nova Micro instead of Claude 3 Sonnet or Titan?
+          #   — Cost: Nova Micro is ~10x cheaper per token than Claude 3 Sonnet.
+          #   — Latency: smaller models respond faster (<1s for short queries).
+          #   — Sufficiency: for a dog adoption chatbot, we don't need Claude's
+          #     advanced reasoning. Nova Micro handles structured Q&A well.
+          #   — Swap-ability: changing to "anthropic.claude-3-sonnet-20240229-v1:0"
+          #     here or via env var switches to Claude with zero code changes.
+          #
+          # WHY the Converse API instead of the older InvokeModel API?
+          #   — Converse is model-agnostic: same request/response format across ALL
+          #     Bedrock models (Nova, Claude, Titan, Mistral, Llama, Cohere).
+          #   — Converse natively supports tool-calling / function-calling, which is
+          #     required for MCP-based agentic workflows.
+          #   — InvokeModel uses model-specific JSON schemas — switching models
+          #     requires rewriting serialization code.
           model: ${BEDROCK_CHAT_MODEL:amazon.nova-micro-v1:0}
+
+      # --- EMBEDDING MODEL (for converting text → vectors for RAG) ---
       cohere:
         embedding:
           enabled: ${BEDROCK_EMBEDDING_ENABLED:true}
+          # Cohere embed-english-v3 — generates 1024-dimensional vectors.
+          # These vectors capture semantic meaning: "friendly dog good with kids"
+          # and "gentle labrador, good with children" produce SIMILAR vectors even
+          # though they share few exact words. This powers semantic search in PGVector.
           model: ${BEDROCK_EMBEDDING_MODEL:cohere.embed-english-v3}
