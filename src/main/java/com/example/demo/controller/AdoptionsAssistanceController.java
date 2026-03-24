@@ -1,10 +1,12 @@
 package com.example.demo.controller;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.prompt.ChatOptions;
+import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -74,6 +76,7 @@ public class AdoptionsAssistanceController {
      * Collections.synchronizedList() or explicit locking per user key.
      */
     private final Map<String, List<Message>> conversationHistory;
+    private final QuestionAnswerAdvisor questionAnswerAdvisor;
 
     /**
      * Constructor injection — Spring automatically provides both parameters.
@@ -85,10 +88,12 @@ public class AdoptionsAssistanceController {
      *   — It's the Spring team's officially recommended approach.
      */
     AdoptionsAssistanceController(ChatClient chatClient,
-                                   @Value("${spring.ai.bedrock.converse.chat.model}") String modelId) {
+                                   @Value("${spring.ai.bedrock.converse.chat.model}") String modelId,
+                                   VectorStore vectorStore) {
         this.chatClient = chatClient;
         this.modelId = modelId;
         this.conversationHistory = new ConcurrentHashMap<>();
+        this.questionAnswerAdvisor = new QuestionAnswerAdvisor(vectorStore);
     }
 
     /**
@@ -151,6 +156,7 @@ public class AdoptionsAssistanceController {
         String response = this.chatClient
             .prompt()
             .messages(messages)
+            .advisors(questionAnswerAdvisor)
             .options(ChatOptions.builder()
                     .model(modelId)
                     .build())
