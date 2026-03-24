@@ -1,0 +1,1529 @@
+
+0:00
+- Hey, Josh.
+0:00
+- Hey, James.
+0:01
+- I've heard this AI thing is pretty cool
+0:03
+and I want to dive in and start learning about it,
+0:05
+but I'm a Java developer who has to integrate things
+0:08
+into servers and all sorts of different services.
+0:10
+This seems like it's going to be hard.
+0:12
+- Actually, as a Java developer and a JVM developer,
+0:14
+we are uniquely well-positioned
+0:16
+because 99% of what people are doing
+0:18
+when they do AI engineering these days
+0:20
+is talking to existing models via REST endpoints.
+0:23
+That's integration.
+0:24
+And you know what Java is uniquely amazing at?
+0:27
+- Integration. - You better believe it.
+0:29
+We are well situated in the enterprise.
+0:30
+We connect to everything.
+0:32
+These Java apps are at the heart
+0:33
+of your organization's business logic
+0:35
+and the gateways to your data.
+0:37
+They are the right place to build this kind of logic.
+0:40
+- Okay, so let's dive in,
+0:41
+and first just walk through how we set up Bedrock,
+0:44
+so that we can use it from our Spring AI application.
+0:47
+I'm in the AWS Console,
+0:49
+and I'm going to go to Amazon Bedrock.
+0:52
+And then we're going to be using models.
+0:54
+And there's two different types of models
+0:56
+that we're going to be using.
+0:57
+One is for our chat,
+0:59
+so when we actually have this conversation with the LLM.
+1:03
+And so, we're going to be using the Nova model for that one,
+1:06
+the Nova Pro model.
+1:08
+So we're going to be able to come in here
+1:09
+and select Nova Pro.
+1:11
+And then I can request access to this model.
+1:15
+So this is something that we'll need to do
+1:17
+to be able to use this model.
+1:19
+So we'll hit that request to access.
+1:21
+And it'll take a minute for it to enable.
+1:24
+You should read the end user license agreement,
+1:26
+make sure you're not doing anything against that.
+1:28
+But then we're also going to be using an embeddings model.
+1:32
+And there's a model here called Cohere.
+1:35
+And so we can come down to see all the different models
+1:38
+and find the Cohere model,
+1:39
+and enable the Cohere model for,
+1:43
+also so that we can do our embeddings,
+1:45
+which we're going to do in the application.
+1:46
+So, there we go.
+1:47
+Let's go back to the list, full list here.
+1:50
+And we can select embeddings.
+1:52
+Oh, there's the Titan Embeddings model.
+1:53
+We're going to use the Cohere one.
+1:55
+So we'll be able to request access to that Cohere model
+1:58
+and use that for embedding.
+1:59
+So now that we've got everything set up,
+2:00
+we'll get our API keys
+2:02
+and we'll be able to then access Bedrock
+2:04
+from our application that you're going to build
+2:08
+on your machine.
+2:08
+So you've already gone through all this
+2:10
+and set up your API access keys.
+2:12
+And so now we can dive in and start writing some code.
+2:14
+- Let's do it.
+2:15
+Which brings us to, I think,
+2:17
+arguably the most important question,
+2:19
+which is, what are we going to build?
+2:20
+Everybody loves pets,
+2:22
+and it's very relatable, super, super relatable.
+2:24
+I love dogs, I love cats,
+2:25
+I just don't love my dog.
+2:26
+- Aw.
+2:27
+- Yeah, no, he's not a good dog, his name is Peanut.
+2:30
+And Peanut is a terrible, terrible dog.
+2:32
+He kind of reminds me of another dog,
+2:33
+about which I learned during the pandemic, named Prancer.
+2:37
+And Prancer, this advert that was put on the internet
+2:40
+by this woman back in 2021,
+2:42
+and she was trying to find a new home for this dog,
+2:45
+and she went viral.
+2:45
+This thing was on the news, and like it was everywhere.
+2:47
+She put out this ad trying to rehouse this dog,
+2:51
+and she says, "Okay, I've tried.
+2:53
+I've tried for the last several months
+2:54
+to post this dog for adoption
+2:56
+and to make him sound palatable.
+2:58
+The problem is he's just not.
+2:59
+There's not a very big market
+3:01
+for neurotic, man-hating, animal-hating,
+3:04
+children-hating dogs that look like gremlins.
+3:06
+But I have to believe there's someone out there for Prancer
+3:08
+because I'm tired and so is my family."
+3:10
+Anyway, she continues, and she says,
+3:13
+"I was excited to see him come out of his shell
+3:15
+and become a real dog.
+3:17
+I'm convinced at this point that he's not a real dog,
+3:19
+but more like a vessel for a traumatized Victorian child
+3:22
+that now haunts our home."
+3:24
+So, I was thinking, what if we could build something
+3:26
+to help people reunite these dogs with their forever home,
+3:30
+and to sort of help people find the dog of their dreams,
+3:33
+or in my case, the dog of my nightmare?
+3:36
+So I want to facilitate that process with an AI assistant
+3:40
+for our fictitious dog adoption agency
+3:42
+called Pooch Palace, okay?
+3:44
+So, we're going to go here to start.spring.io.
+3:46
+We have some questions that we need to stipulate,
+3:48
+or answers rather, before we can proceed.
+3:50
+First and foremost is, what is the name of the service?
+3:52
+I'm just going to call it adoptions
+3:53
+because I'm really good with names.
+3:55
+Then we have the choice
+3:56
+of what version of Java we want to use.
+3:57
+- So we're using Java 23, and we're using the Java language.
+4:00
+So now we need to add some dependencies to this thing.
+4:01
+- Yeah, it's going to be a web app,
+4:03
+so bring in the web support.
+4:04
+We're going to talk to a SQL database containing our data,
+4:06
+so we'll bring in Spring Data JDBC.
+4:08
+I want to talk to a Postgres database
+4:11
+that is also capable of vector store capabilities, right?
+4:15
+And we'll talk about that in a second.
+4:17
+So I'm going to use PGvector store.
+4:19
+There are many different implementations of vector store,
+4:22
+of the vector store interface in Spring AI,
+4:24
+but this is the one we're using.
+4:26
+And then, of course, we need to talk to Bedrock, right?
+4:29
+- Yep. So there's two different Bedrock things
+4:32
+that you want to add here.
+4:33
+So one is for the chat client that we're going to build,
+4:35
+and then the other is for the embeddings.
+4:37
+And so we're going to bring in both of these dependencies in
+4:41
+to talk to Bedrock and use it. - Nice.
+4:43
+And it's just already there for you at start.spring.io.
+4:45
+And then, finally, we're going to, you know,
+4:46
+we want to take advantage of MCP, you know?
+4:49
+- Oh, that's right.
+4:50
+We are going to dive into MCP,
+4:52
+so that's going to be good.
+4:53
+And we're going to bring in the MCP client
+4:56
+and we'll build this server later.
+4:58
+- Yeah. And then, you know,
+4:59
+to make it so I can get live reload, I use DevTools.
+5:01
+- Great. - All right.
+5:02
+I think I'm happy with our selection,
+5:03
+so let's hit Enter.
+5:05
+Open this up in the IDE.
+5:06
+It doesn't matter what IDE you use
+5:08
+so long as it supports the version of Maven
+5:10
+or Gradle that you've specified
+5:12
+and the version of Java,
+5:13
+which all of them will at this point, right?
+5:15
+So, let's dive right into this.
+5:17
+First things first, let's establish connectivity
+5:19
+to the data store, right?
+5:20
+So we're going to say
+5:22
+spring.datasource.url=jdbc:
+5:26
+postgresql://localhost/mydatabase. Okay.
+5:32
+- [James] So you've got your Postgres database
+5:35
+up and running already. - Yeah.
+5:36
+- [James] And it's got some pets in it.
+5:38
+- It does. Let's go ahead and take a look at that.
+5:40
+Actually, you know, one thing I like about IntelliJ,
+5:42
+click on that little button there,
+5:43
+hit Test, hit Apply, hit OK.
+5:45
+Go over here, refresh.
+5:46
+- [James] Wow.
+5:48
+There's our database. - There's our database.
+5:49
+There's our dog database.
+5:51
+We've got IDs, names, and descriptions.
+5:54
+And there's our boy Prancer.
+5:55
+His ID is 45, his name is Prancer,
+5:57
+and he's described as a demonic, neurotic,
+6:00
+man-hating, animal-hating, children-hating dog
+6:03
+that looks like gremlins.
+6:05
+So first things first,
+6:06
+I think we need to actually
+6:07
+establish connectivity to Bedrock.
+6:09
+So bedrock.converse.chat.enabled is true.
+6:12
+And then we want to chat.options.model=amazon.nova-pro-v1:0.
+6:20
+- This is where we tell it
+6:21
+that we're going to use the Nova Pro model.
+6:23
+So we're going to use Cohere for the embedding,
+6:25
+so we enable that.
+6:26
+- So now, let's build this. Let's actually talk to it.
+6:28
+We're going to, you know, we're going to talk
+6:29
+to the data store.
+6:30
+We need some types to represent the type in the database,
+6:33
+so I'll create a simple entity here
+6:35
+to represent that table, String name, String owner,
+6:38
+String description.
+6:39
+And, you know, I'm going to use Java records here.
+6:41
+I just, I love, I love, I love, love Java records.
+6:45
+Huge fan, big fan, right?
+6:46
+Very, very nice compared to the status quo.
+6:49
+And we're using Spring Data JDBC.
+6:52
+So I'll say DogRepository extends
+6:55
+list of CrudRepository, okay?
+6:57
+Of entity of type Dog,
+6:59
+whose primary key is of type Integer.
+7:02
+Okay.
+7:03
+Integer.
+7:04
+So now, I think we're good.
+7:04
+Let's actually get to sort of the meat and potatoes here.
+7:07
+We're going to build a simple HTTP controller
+7:10
+that answers questions for people who are making inquiries,
+7:13
+you know, about the dogs in the shelter, okay?
+7:16
+So, AdoptionsAssistantController, right?
+7:20
+And let's just try a simple hello world endpoint.
+7:22
+We're going to talk to our model
+7:24
+via the Spring AI ChatClient.
+7:28
+Okay, I am being a little tongue-in-cheek here
+7:30
+by calling it singularity,
+7:31
+but obviously there's no such thing
+7:33
+as a singularity just yet.
+7:35
+And we're going to say, you know,
+7:36
+given a ID for the username, maybe.
+7:39
+There you go, user.
+7:41
+We're going to have an inquire endpoint,
+7:43
+and we're going to return data, okay?
+7:45
+We have to configure that ChatClient.
+7:47
+We have to have an object of that type
+7:49
+configured in the code somewhere,
+7:50
+so I'll do that here.
+7:52
+And we'll return it just to default configuration.
+7:55
+- So the ChatClient is what's going to give us access
+7:57
+to that model on Bedrock to be able to send prompts
+8:01
+and get responses back from the LLM.
+8:05
+- Right. Yeah.
+8:06
+And the first thing we want to do
+8:08
+is send the user prompt.
+8:10
+Now, a user prompt is the question that the user sends
+8:14
+and that you send to the AI model, right?
+8:16
+So it'll be specified as a request parameter, like that.
+8:19
+And we'll send in the user prompt.
+8:22
+Oh, I passed in the wrong thing.
+8:25
+I passed in the user.
+8:25
+Let's try that again.
+8:26
+- Okay, so pass in the question.
+8:28
+- Right.
+8:30
+You've got to be sure you're passing the right thing.
+8:32
+"Do you have any neurotic dogs?"
+8:34
+Okay, it says,
+8:35
+"While I don't have personal experiences or pets,
+8:37
+I can certainly provide information
+8:38
+about neurotic behavior in dogs."
+8:40
+All right. So we're going to make this request,
+8:42
+and the way we're going to propagate
+8:43
+that history or that chat history
+8:46
+is by configuring an advisor.
+8:48
+This is how you intercept requests
+8:50
+going to and from a model, okay?
+8:53
+And so we're going to configure that here.
+8:55
+And we're going to store a,
+8:56
+you know, we're going to cache,
+8:58
+we're going to memorize that advisor
+8:59
+for each unique user,
+9:01
+hence the distinguishing user path variable there.
+9:04
+So we'll say private final Map
+9:07
+and it'll be PromptChatMemoryAdvisor.
+9:11
+Import that, advisorMap,
+9:13
+and a new ConcurrentHashMap.
+9:15
+advisorMap.computeIfAbsent, passing in the user there.
+9:20
+And if the user is there, then we can actually,
+9:24
+if it's not there rather,
+9:25
+we can create a new in-memory chat advisor.
+9:28
+So, new InMemoryChat, no, sorry.
+9:33
+- [James] The PromptChatMemory.
+9:34
+- Thank you. There you go.
+9:36
+And then passing in the new InMemoryChatMemory,
+9:38
+that's what I was trying to do.
+9:39
+- Yep. - Good.
+9:40
+So, that'll give me back either the existing
+9:45
+or a new and then updated advisor.
+9:47
+And I'm going to configure that on the call to the model.
+9:51
+Okay, like so. - So you just add that advisor
+9:53
+into the prompt call. - Yeah.
+9:54
+- And now we're going to have memory?
+9:56
+- Let's try it.
+9:57
+"What is my name?"
+9:58
+"Your name is Josh."
+9:59
+- [James] Great. we've got memory.
+10:00
+- Yeah. - Awesome.
+10:01
+- Okay, this is good, this is a start
+10:02
+because now we can have a conversational experience
+10:04
+with our model here.
+10:06
+But it's still not giving us,
+10:07
+like if we ask that original question,
+10:08
+like, the original question is,
+10:10
+"Do you have any neurotic dogs?"
+10:12
+It's still not giving us anything, is it?
+10:13
+- It doesn't know about your dogs in your database. Yeah.
+10:16
+- So, this is not going to cut it.
+10:18
+We have a higher standard of interactions
+10:21
+with our customers than this.
+10:22
+And so we need to give it what is called a system prompt.
+10:25
+A system prompt is a prompt that overrides,
+10:27
+it sets the tone and tenor of the responses in, you know,
+10:31
+governing how we respond to those user prompts.
+10:34
+And so I happen to have a system prompt here
+10:37
+that I've pre-written, okay?
+10:40
+There it is. There's my system prompt.
+10:41
+Let's just cat it and I'll copy it to the clipboard.
+10:45
+You know what? This doesn't feel right.
+10:48
+Let's try that. Much better. Much better, okay?
+10:50
+There's that, okay? - Oh, you can't cat it,
+10:52
+you got to dog it.
+10:53
+- Dog it. Exactly.
+10:54
+Copy and paste that.
+10:55
+And we're going to put that
+10:56
+in the default configuration for the ChatClient.
+10:58
+I could also do it here at the call site, right?
+11:00
+I could specify it there.
+11:02
+But I find it's just one of those things
+11:03
+where if you're going to reuse the same ChatClient
+11:05
+for one particular purpose, why not put it here, right?
+11:08
+So, there we go.
+11:10
+And this says, "You are an AI-powered assistant
+11:13
+to help people adopt a dog
+11:16
+from the adoption agency named Pooch Palace
+11:18
+with locations in Antwerp, Seoul, Tokyo, Singapore,
+11:21
+Paris, Mumbai, New Delhi, Barcelona,
+11:23
+San Francisco, and London.
+11:24
+- So now every conversation that we have with the LLM
+11:27
+is going to have that context in it.
+11:28
+- Right. It'll, yeah, exactly.
+11:30
+It'll precede every thing that comes after it,
+11:32
+and so the responses will be in terms of that persona, okay?
+11:36
+So let's try this again.
+11:39
+"Do you have any neurotic dogs?"
+11:41
+Okay. Ah, okay.
+11:43
+"Currently, we don't have any dogs
+11:44
+labeled as neurotic in our available listings.
+11:46
+However, each dog has its own unique personality."
+11:48
+Okay. "And may exhibit certain quirks."
+11:50
+- So we've got our system prompt.
+11:51
+- We got our system prompt.
+11:52
+It's more in line, it knows what we're doing here,
+11:55
+it knows how to play the game, but, still,
+11:59
+no dice, or in this case, no dog,
+12:00
+- Yeah, no dog.
+12:01
+- Yeah. So we need to give it access to our data.
+12:03
+And where's our data?
+12:04
+- We've got it running locally in our Postgres database.
+12:06
+- Exactly. So let's trim this down by sending
+12:08
+only the data that might be pertinent to this request.
+12:12
+And we can do that by putting it in a vector store.
+12:14
+Vector stores support similarity search,
+12:16
+semantic similarity searches.
+12:18
+And it's not limited to just text,
+12:20
+you could put, you know, audio and images and whatever,
+12:22
+depending on the embeddings and all that.
+12:24
+But for our purposes, we're just going to put text
+12:26
+and we want to find things that might be relevant to it.
+12:28
+And then from that result,
+12:31
+we'll send the sub-selection
+12:32
+that comes back from the vector store
+12:34
+and then send that onto the model
+12:35
+for further and final analysis.
+12:37
+Okay. So, let's bootstrap our vector store, okay?
+12:41
+Now, I'm using Postgres for my SQL database
+12:45
+and I happen to be using it for the vector store,
+12:47
+but there are many other vector stores out there, right?
+12:50
+- [James] Different options you can use. Yeah.
+12:51
+- Yeah. Okay.
+12:52
+Okay, so let's go ahead and set that up here
+12:54
+in the ChatClient.
+12:55
+And in order to do that,
+12:57
+I'm going to inject the old DogRepository here
+12:59
+to get the data from the SQL database.
+13:01
+And I'm going to inject the VectorStore
+13:03
+to get the access to the vector store, okay?
+13:05
+There are many different implementations
+13:07
+of this abstraction available through start.spring.io,
+13:09
+we've got three on the class path here.
+13:11
+Okay, so dogRepository.findAll().forEach(dog → {}).
+13:18
+And we're going to create a document
+13:20
+that we're going to write out to the vector store.
+13:23
+Now, I'm going to put an arbitrary string,
+13:25
+and it doesn't all that much matter
+13:26
+what string you put in there, so long as it's consistent.
+13:28
+So we're going to say dog.id, dog.name, dog.description.
+13:33
+And we're going to say
+13:33
+vectorStore.add(List.of(document)), okay?
+13:37
+That looks okay to me, no, wait, I just realized.
+13:39
+- Yeah, no. - No.
+13:41
+This is much better.
+13:42
+There you go, dogument, okay?
+13:42
+- Dogument. - Exactly.
+13:44
+Now, we have the data in the vector store there,
+13:48
+but our chat client doesn't yet know
+13:51
+to sort of consult that vector store.
+13:53
+So, back to the advisors, right?
+13:55
+We're going to plug in one more advisor.
+13:57
+This time, it's just going to be one singleton advisor.
+14:00
+And that is the question and answer advisor, okay?
+14:03
+Question and answer advisor.
+14:06
+this.questionAnswerAdvisor = new QuestionAnswerAdvisor,
+14:11
+passing in the the VectorStore.
+14:14
+Okay.
+14:16
+And there's no reason this couldn't have been
+14:18
+a bean, for example.
+14:20
+I could have had a singleton
+14:21
+throughout the entire application.
+14:23
+But, oh, well.
+14:24
+Okay, so there we go.
+14:25
+One advisor and then the other one, right?
+14:27
+this.questionAnswerAdvisor.
+14:28
+So now we've got two advisors in play,
+14:30
+and when the program restarts,
+14:32
+it'll write everything to the SQL data store.
+14:35
+Do we have a vector store table at the moment? We do not.
+14:39
+So here, let's have Postgres,
+14:41
+and PGvector in particular,
+14:43
+initialize the schema for us, okay?
+14:45
+- Great.
+14:46
+And then we're also going to need
+14:47
+to make an embedding streak.
+14:49
+Do you want to do that now?
+14:50
+- Oh, yeah, yeah.
+14:51
+Another interesting aspect of what's about to happen here
+14:54
+is that we're going to take our text
+14:55
+and turn it into a vector, which is a, you know,
+14:58
+like you remember math, right?
+14:59
+Like a, it's a vector, it's a matrix of numbers.
+15:01
+Yeah, an array of numbers, a matrix.
+15:03
+And we need to constrain or define the size of the vector
+15:09
+so that both the thing that's going to create the vectors
+15:13
+for us, which is the embedding model hosted on Amazon,
+15:16
+and the thing that's going to store the vectors,
+15:18
+which is our Postgres PGvector implementation,
+15:20
+line up, okay?
+15:21
+- Yep. We're got to get those two aligned.
+15:22
+- And so we want vectorstore.pgvector.dimensions=,
+15:26
+and what do we have here? 1024.
+15:28
+Okay, good old round number.
+15:30
+Yeah.
+15:31
+Okay, so now, "Do you have any neurotic dogs?"
+15:34
+If we've done everything as we expect,
+15:37
+it should result in:
+15:39
+"Yes, we do have a neurotic dog available for adoption."
+15:42
+- Amazing. So we've just, this is called RAG, right?
+15:45
+We've just done retrieval augmented generation, right?
+15:49
+Something like that. - Yeah, yeah, exactly.
+15:50
+- Did I get that right?
+15:51
+And so we've been able to augment the LLM
+15:54
+with some data from our vector store.
+15:57
+But it found Prancer. - Right, it did.
+15:59
+So it worked. So we found our dog, right?
+16:02
+Before we go too much further afield,
+16:03
+let's comment out the initialization.
+16:05
+I don't want to re-initialize it each time
+16:07
+because this takes, you know,
+16:08
+it's expensive to do this kind of thing.
+16:10
+You might want to do this per request per,
+16:12
+as you add dogs to the database,
+16:14
+you also vectorize the data, right?
+16:15
+- Yeah.
+16:16
+But we need to figure out how to get this dog a home.
+16:19
+- Got to get him a home.
+16:20
+Right, how do we schedule a pickup for him?
+16:22
+- [James] Yeah.
+16:23
+- And here, this is an example of a system
+16:27
+where our model won't have access to the most
+16:32
+up-to-date or relevant data.
+16:34
+Sometimes that's just a question of,
+16:36
+you know, how stale is the model, right?
+16:38
+Models typically have cutoff dates,
+16:39
+they're valid up until certain point in time,
+16:41
+and they know about what's happened in the world
+16:43
+up until that point in time.
+16:44
+And then, after that,
+16:45
+you kind of have to like plug in the gaps.
+16:47
+And then there's also just a question of like, reach, right?
+16:50
+Your model probably doesn't have access
+16:51
+to your company's private customer database.
+16:53
+That makes sense, right?
+16:55
+So we need to give it access to that,
+16:57
+or at least to the parts of it
+16:57
+that it needs to answer these queries.
+17:00
+And we also want to give it access to the real world.
+17:03
+So we can do that through tools.
+17:05
+Tools are how you give it the ability
+17:07
+to ask questions and get responses
+17:09
+and do things on its own.
+17:11
+- It's like a integration point into the LLM
+17:13
+to some other system somewhere else.
+17:15
+- Yeah, exactly.
+17:16
+The common, most easy to understand example is,
+17:19
+how does my model analyze the weather
+17:21
+if it doesn't know what the current weather is
+17:23
+in my locale, right?
+17:24
+So you give it a tool saying,
+17:25
+"Hey, give me the weather for this city name,"
+17:27
+and it'll, you know, give in a response from that,
+17:30
+it can say, "Oh, it's raining,
+17:31
+you should bring a jacket," or something like that.
+17:33
+- So in our case, we want to be able to adopt this dog,
+17:36
+which means scheduling an appointment,
+17:37
+which is going to hook up to our,
+17:39
+you know, some business application.
+17:41
+And so, there's going to be this tool
+17:44
+that is going to enable that integration between those.
+17:47
+- Right, exactly.
+17:48
+So, let's build a tool here, okay?
+17:51
+DogAdoptionScheduler.
+17:55
+And we'll have a,
+17:57
+it's going to, you know, scheduleDogAdoptionAppointment.
+18:03
+- This is our functionality that is going to be called
+18:05
+as part of this request cycle.
+18:10
+- And we're going to, let's see, we have to,
+18:12
+very important here, right?
+18:13
+Remember, you were always taught to be clear
+18:16
+and descriptive in your communication.
+18:18
+It's all the more important here
+18:20
+as a function of your AI engineering skill.
+18:21
+So, "schedule an appointment to adopt a dog
+18:25
+at the Pooch Palace dog adoption agency."
+18:30
+- So this is important because this is how the LLM
+18:33
+is going to decide which tool corresponds
+18:35
+to what needs to happen.
+18:37
+- Exactly. - And so, when you say
+18:39
+something around schedule an appointment,
+18:41
+it's like, oh, I have a tool that can do that.
+18:43
+- Right. And the model will figure it out.
+18:45
+So it's actually going to orchestrate the stuff
+18:47
+in a sense for us.
+18:49
+- So we're putting these descriptions
+18:50
+not just on the function name,
+18:52
+but also on the function parameters,
+18:54
+again, so that the LLM knows how to fill in
+18:56
+the parameters in the right places with the right data.
+18:59
+- Okay. So here we go.
+19:01
+And we're, you know, we're just keep it simple.
+19:02
+We're a hard-code a response that is,
+19:04
+no matter what the date it is today,
+19:06
+it'll be three days later, right?
+19:07
+So we can say you can come on in
+19:09
+three days from now, right?
+19:10
+So, there's our instant,
+19:12
+and we're going to just, I don't know,
+19:13
+let's just return a string for that.
+19:17
+Like that. How about that?
+19:19
+Okay, there's the exception.
+19:22
+And we're going to print out, you know,
+19:25
+"confirming appointment for."
+19:30
+- Put in the parameters so we can make sure
+19:33
+that this is getting called
+19:34
+with the right data that we expect.
+19:36
+- Huge. It's going to be huge. I just love this part.
+19:40
+Okay, so there's that, there's that, there's that.
+19:43
+Let's, and now we have to tell our AI,
+19:45
+our chat client rather, to take advantage of this tool
+19:47
+to make it available in its processing.
+19:49
+And the way this works,
+19:50
+as you can imagine behind the scenes, is that,
+19:52
+we're going to make a call to the downstream service.
+19:54
+It in turn is going to know about
+19:57
+the tools that are available to it.
+19:59
+And if it decides it needs one of those,
+20:01
+it'll ask us to then invoke it locally
+20:03
+and give it the response as required.
+20:06
+So, here's this, we're going to say scheduler,
+20:08
+just, oh yeah, let me say that to a variable there.
+20:11
+DogAdoptionScheduler.
+20:14
+Okay, add that.
+20:16
+Add that to the constructor.
+20:17
+Got two variables there for no reason.
+20:20
+Okay, there we go.
+20:22
+And now, we go back down to tools,
+20:24
+and we can just point it to the Spring bean, right?
+20:26
+And then, reload.
+20:27
+Okay, so, "Do you have any neurotic dogs?"
+20:30
+So, "The user is asking if there are any neurotic dogs
+20:33
+available for adoption based on the context provided,"
+20:35
+blah, blah, blah.
+20:36
+"Prancer with the ID 45 is described." Okay, great.
+20:38
+So we clearly found him.
+20:39
+So now, next question, which is,
+20:41
+"When can I schedule an appointment
+20:45
+to pick up Prancer at the London location?"
+20:50
+Okay. - Let's see what happens.
+20:53
+- Look at that. It says, "Based on the tool results,
+20:54
+an appointment to pick up Prancer has been scheduled
+20:56
+for March 17th."
+20:57
+And remember, we said three days later,
+20:59
+it's the 14th, as you can see up here,
+21:01
+- Pi Day. So three days after Pi Day.
+21:02
+- Three days after Pi Day, very important.
+21:04
+- March 17th. - Yeah.
+21:05
+- So it called our tool. - And we can confirm as much.
+21:07
+- And of course, that could do whatever would be needed
+21:10
+in a real backend system.
+21:11
+But it actually all worked.
+21:13
+And we can see, sure enough,
+21:15
+we got the right parameters sent to that function call.
+21:18
+- Nice. This is all local, though.
+21:20
+In the enterprise, local is not your friend.
+21:21
+Maybe you want to centralize this business logic
+21:23
+so that other parts of the ecosystem, the organization,
+21:26
+can benefit from that functionality, right?
+21:28
+In this case, the scheduling algorithm
+21:30
+it's institutional knowledge.
+21:32
+We want that to be reusable
+21:34
+for all the AI applications in the organization.
+21:36
+- So we got to decompose
+21:37
+and pull this tool out from being just built in,
+21:40
+we have to make it a service.
+21:41
+- Yeah.
+21:42
+If only there was a protocol that could do that.
+21:43
+- If only there was a protocol for this.
+21:46
+Thankfully to Anthropic,
+21:48
+there's the model context protocol, MCP,
+21:51
+which creates this protocol for doing remote tools.
+21:54
+- Right.
+21:55
+And we've already got the model context protocol client
+21:57
+configured here.
+21:58
+- We did add that in already. Yeah.
+22:00
+- Before we get to that,
+22:01
+let's go ahead and stand up the service
+22:03
+so that this thing has something to which to connect, okay?
+22:04
+- So we're going to pull that piece out into its own server.
+22:08
+- Right. - Its own MCP server.
+22:09
+- So again, I'll call this service.
+22:11
+Again, I'm really good with names.
+22:12
+Okay, so, MCP, model context server,
+22:15
+we want the web support. Hit Enter.
+22:18
+And open this up in the IDE.
+22:22
+And, you know, this is not hard.
+22:23
+We're going to copy and paste, cut and paste even,
+22:26
+the logic for the scheduling.
+22:27
+So, here's our proprietary algorithm for scheduling.
+22:29
+- [James] For refactoring.
+22:30
+- Refactoring.
+22:31
+Okay, there you go. Done.
+22:33
+And now we tell Spring AI MCP to export that.
+22:38
+- So we've got to like wire that MCP server
+22:41
+into the Spring Web.
+22:43
+- [Josh] Right.
+22:45
+Tool, what is it called?
+22:47
+- CallbackProvider.
+22:48
+- Yeah, that's, oh, ToolCallback, thank you.
+22:50
+There we go.
+22:52
+Okay. And we'll say I do that.
+22:55
+And we're going to say
+22:56
+we want MethodToolCallbackProvider, builder.
+23:01
+build. And then, here, we're going to give the toolObjects.
+23:04
+And again, just as before,
+23:04
+we're going to point it to our Spring bean.
+23:06
+- Just inject that thing in.
+23:07
+- Yeah.
+23:09
+Okay.
+23:10
+And then, finally, we want this to run in a separate port,
+23:11
+since we don't want it to conflict
+23:13
+with the existing port 8081.
+23:16
+And now you've got yourself an MCP service.
+23:18
+Let's just spin that up.
+23:19
+- Amazing. - Amazing.
+23:20
+Yeah, not bad at all.
+23:21
+Okay, so now we need to build
+23:23
+the client side of the coin, right?
+23:25
+We've built the service,
+23:27
+we need now to tell the adoption service
+23:29
+how to connect to our functionality
+23:32
+being exposed by that MCP service.
+23:34
+So we'll build an McpSyncClient MCP client,
+23:38
+and we're going to say,
+23:40
+McpClient.sync, passing in the transport.
+23:44
+And this is where the rubber meets the road, so to speak.
+23:46
+We have to tell it where to find it.
+23:46
+- So with MCP, there's two default transports
+23:49
+that you can use, one is Standard I/O,
+23:51
+which is great if you're using MCP
+23:53
+with the AI code assistant
+23:55
+and you can run your servers locally.
+23:57
+But for this type of kind of agentic server,
+24:00
+we're likely going to have the MCP server
+24:02
+running somewhere else.
+24:03
+And so we're going to use the Server-Sent Events
+24:06
+transport for this MCP server.
+24:08
+- Absolutely. So we're going to do that.
+24:10
+That's the hard part right there,
+24:12
+is just making sure you wrote that one little bean
+24:15
+that points it to local host 8081.
+24:18
+Okay. And then we'll just, we'll plug that in,
+24:20
+just as we did before, here, mcpSyncClient.
+24:23
+And we're going to point the tools to that.
+24:27
+We're going to say new SyncMcpToolCallbackProvider,
+24:30
+passing in the mcpSyncClient.
+24:33
+"Do you have any neurotic dogs?"
+24:35
+- Let's see.
+24:37
+Neurotic dogs.
+24:39
+Prancer! - There's Prancer. Good.
+24:41
+Next question. Natural next question.
+24:43
+"When can I schedule an appointment
+24:44
+to pick up Prancer at the London location?"
+24:47
+- And so now they should be doing the remote MCP call.
+24:50
+And, sure enough, it worked.
+24:53
+- Yep. "The appointment to pick up Prancer
+24:55
+at the London location has been scheduled for March 17th."
+24:57
+We can confirm as much by going over
+24:59
+to our service, and there it is.
+25:02
+- Great. - Not bad at all, huh?
+25:03
+- Nice.
+25:04
+- We've done it.
+25:05
+We've actually integrated, you know, our MCP service,
+25:08
+we built up a brand new AI application.
+25:11
+We've used the ChatClient, we've done system prompts,
+25:13
+user prompts, we did RAG, we did all sorts of cool stuff.
+25:15
+The last thing, I think, the thing that people might have
+25:17
+on the top of mind these days is, how do I do agentic?
+25:22
+Agentic just means you let the AI control its own outcomes
+25:26
+or its own flow, its own control flow.
+25:27
+And that's a very natural thing to do.
+25:29
+You can actually have one model talk to another
+25:33
+to evaluate the results.
+25:34
+You can actually have routing.
+25:35
+You can say, okay, the request comes in,
+25:37
+we use one model to do very efficient routing,
+25:39
+and then send it to another for further processing
+25:41
+based on a specific set of tools and RAG, okay?
+25:43
+Or you could actually even have iterations
+25:45
+where one model says, "Hey, I wrote some code."
+25:47
+The other one says, "Oh, that's good,
+25:48
+but you could fix this."
+25:49
+And the other one says, "Okay, I'll fix it.
+25:51
+What about that?"
+25:52
+And you keep going. That's just a while loop, right?
+25:54
+- Yeah, that's the way I look at it, is,
+25:55
+when you go agentic, you're just putting this kind of stuff
+25:58
+into a while loop and letting it iterate
+26:00
+until it gets to a result.
+26:02
+- Yeah. - So you're not defining
+26:03
+a static workflow, you're letting the LLM iterate
+26:08
+in this loop until it gets to the desired outcome.
+26:11
+- And there's two types of agentic systems these days.
+26:14
+There's workflows and then there's like what, you know,
+26:16
+the agentic sort of style, which is,
+26:20
+you say here's the end goal and just let it go,
+26:23
+which is very hard to get right.
+26:24
+Most people aren't doing that.
+26:25
+And then there's workflows,
+26:26
+which is basically multi-step processes that are, you know,
+26:31
+mediated by models along the way.
+26:34
+Either way, easy to do. - So it'd be easy to get
+26:35
+to that from where we are here.
+26:38
+So great. So we've shown kind of end to end,
+26:40
+with Java and Spring AI, how to build a AI-powered service.
+26:46
+And done the tools, done many different types
+26:50
+of integrations with the vector store,
+26:52
+with the embeddings, and this was awesome.
+26:55
+Super easy. I think any Java developer
+26:57
+should be able to do this.
+26:58
+- Absolutely.
+26:58
+- Thanks for watching.
+26:59
+- We hope you got something out of it.
+27:01
+- If you liked it, then like and subscribe.
+27:04
+- I already did.
+27:05
+- You did? - Yeah.
+27:06
+- Awesome. - Big fan.
+27:07
+- Well, hopefully you'll give Spring AI and Bedrock a try,
+27:11
+and let us know in the comments how it goes.
+27:13
+- And enjoy your journey to production.

@@ -398,3 +398,51 @@ Given your resume entry and the Salesforce **Agentforce for Supply Chain** role,
 
 **Q24: Your Makefile has AWS credentials hardcoded. How would you handle secrets in production?**
 - *They want to hear*: AWS IAM roles (instance profiles / ECS task roles), AWS Secrets Manager, environment variables injected by CI/CD, never in code. The Makefile is development-only convenience.
+
+---
+
+## Beginner Q&A: Chat Model vs Embedding Model
+
+### 1) What is the difference between Nova Pro in Bedrock and Cohere embedding model?
+
+In simple words:
+
+- **Nova Pro (chat model)** is like a **writer/conversation assistant**.  
+  You give it a question, and it writes a human-style answer.
+- **Cohere Embedding model** is like a **meaning converter**.  
+  You give it text, and it converts that text into numbers (a vector) so the app can compare meaning and find similar information.
+
+A practical analogy:
+
+- If you run a library:
+  - **Embedding model** = librarian indexing every book by topic/meaning.
+  - **Chat model** = friendly staff member who talks to visitors and explains answers.
+
+How they work together in your app:
+
+1. Cohere embedding model converts dog descriptions into vectors and stores them in PGVector.
+2. When a user asks a question, the system finds the most relevant dog records using vector similarity.
+3. Nova Pro (or your configured chat model) then reads that retrieved context and writes the final response.
+
+So:
+
+- **Chat model answers**
+- **Embedding model helps the app find the right context to answer from**
+
+### 2) Which library is for chat client and embeddings in this project?
+
+From this project's `pom.xml`:
+
+- **Chat client / Bedrock chat support**
+  - `spring-ai-starter-model-bedrock`
+  - `spring-ai-starter-model-bedrock-converse`
+  - `ChatClient` class (used in Java code)
+
+- **Embeddings + vector database support**
+  - `spring-ai-starter-vector-store-pgvector` (stores/searches vectors in PostgreSQL + PGVector)
+  - Bedrock Cohere embedding configuration in `application.yml` under:
+    - `spring.ai.bedrock.cohere.embedding.model`
+
+- **RAG retrieval helper**
+  - `spring-ai-advisors-vector-store`
+  - `QuestionAnswerAdvisor` (injects relevant retrieved context into prompts)

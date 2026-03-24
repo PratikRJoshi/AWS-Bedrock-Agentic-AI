@@ -1,8 +1,12 @@
 package com.example.demo.config;
 
+import io.modelcontextprotocol.client.McpSyncClient;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
+import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import java.util.List;
 
 /**
  * SPRING AI CHAT CLIENT CONFIGURATION
@@ -21,6 +25,11 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class ChatClientConfig {
+
+    @Bean
+    public SyncMcpToolCallbackProvider syncMcpToolCallbackProvider(List<McpSyncClient> mcpSyncClients) {
+        return new SyncMcpToolCallbackProvider(mcpSyncClients);
+    }
 
     /**
      * Creates and registers the ChatClient bean in Spring's IoC container.
@@ -52,7 +61,23 @@ public class ChatClientConfig {
      * @return a ready-to-use ChatClient wired to AWS Bedrock
      */
     @Bean
-    public ChatClient chatClient(ChatClient.Builder builder) {
-        return builder.build();
+    public ChatClient chatClient(ChatClient.Builder builder,
+                                 ToolCallbackProvider mcpToolCallbackProvider) {
+        String systemPrompt = """
+                You are an AI-powered dog adoption assistant for Pooch Palace.
+                Use retrieved dog context to answer informational questions about available dogs.
+
+                If the user asks to schedule, confirm, or update an appointment, use the available
+                MCP scheduling tool. If required details are missing (dog name or location), ask
+                a concise follow-up question before calling the tool.
+
+                Do not expose hidden reasoning or internal thinking.
+                Return clear, user-friendly answers.
+                """;
+
+        return builder
+                .defaultSystem(systemPrompt)
+                .defaultToolCallbacks(mcpToolCallbackProvider)
+                .build();
     }
 }

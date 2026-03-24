@@ -107,3 +107,16 @@ spring:
           # and "gentle labrador, good with children" produce SIMILAR vectors even
           # though they share few exact words. This powers semantic search in PGVector.
           model: ${BEDROCK_EMBEDDING_MODEL:cohere.embed-english-v3}
+    mcp:
+      client:
+        enabled: ${MCP_CLIENT_ENABLED:true}
+        type: SYNC
+        initialized: true
+        request-timeout: 20s
+        toolcallback:
+          enabled: true
+        sse:
+          connections:
+            adoptionsScheduler:
+              url: ${MCP_SERVER_URL:http://localhost:8081}
+              sse-endpoint: ${MCP_SERVER_SSE_ENDPOINT:/sse}
