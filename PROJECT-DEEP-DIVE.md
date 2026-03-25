@@ -446,3 +446,72 @@ From this project's `pom.xml`:
 - **RAG retrieval helper**
   - `spring-ai-advisors-vector-store`
   - `QuestionAnswerAdvisor` (injects relevant retrieved context into prompts)
+
+---
+
+# 5. Questions to Ask the Interviewer (Salesforce Agentforce for Supply Chain)
+
+These questions are designed to showcase interest in the role while connecting back to the architecture and patterns used in this project.
+
+Pick 3-4 for the actual interview. Lead with one architecture question, include one safety/reliability question, and close with one team/growth question.
+
+## Questions About Agent Architecture & Planning
+
+**1. "In my project, I built agentic tool-calling using MCP over SSE where the LLM decides which tools to invoke. How does Agentforce handle the planning layer -- does the agent build an explicit plan before executing, or does it reason step-by-step reactively?"**
+
+*Why this is strong:* Shows you understand the difference between ReAct-style (step-by-step) and plan-then-execute architectures. Directly connects your MCP experience to their agent design.
+
+**2. "Supply chain workflows often involve long-running, multi-step processes with dependencies -- like PO validation, then inventory check, then shipment creation. How do your agents handle failures mid-plan? Is there a checkpoint/rollback mechanism, or does the agent re-plan from scratch?"**
+
+*Why this is strong:* Demonstrates you think about failure modes in distributed systems, not just happy paths. Shows production-mindedness.
+
+**3. "My project uses RAG with PGVector for grounding responses in real data. In the supply chain domain, what kinds of data sources do agents retrieve from -- ERP systems, document stores, real-time logistics feeds? And how do you handle the freshness vs latency tradeoff?"**
+
+*Why this is strong:* Shows you understand RAG isn't just a demo pattern -- it has real production challenges around data staleness. Connects your vector store experience to their domain.
+
+## Questions About Safety & Reliability
+
+**4. "The role mentions safety constraints for autonomous agents. In my project I thought about tool permission scoping and input validation before executing MCP tool calls. At Salesforce's scale, how do you draw the line between what an agent can do autonomously versus what requires human approval -- especially for high-value supply chain actions like modifying purchase orders?"**
+
+*Why this is strong:* Shows you've already thought about guardrails in your own work and want to understand how they scale that thinking to enterprise-grade.
+
+**5. "How does the team evaluate agent reliability? For example, if the agent makes the wrong tool call or hallucinates a shipment date, how do you detect that in production -- is it observability-driven, or do you have an evaluator model checking outputs?"**
+
+*Why this is strong:* Shows awareness of LLM evaluation challenges. Ties to the job requirement about observability tools (Splunk) and reliability frameworks.
+
+## Questions About the Team & Culture
+
+**6. "The posting mentions this team has deep startup roots from a recent acquisition. How much of the original architecture survived into Salesforce's infrastructure, and how do you balance startup velocity with Salesforce's enterprise requirements around Data Cloud and trust?"**
+
+*Why this is strong:* Shows you read the posting carefully and understand the tension between startup speed and enterprise governance. Signals you can operate in both modes.
+
+**7. "The role involves mentoring engineers on AI/ML practices. What does the current team's AI experience spectrum look like -- are most engineers coming from traditional backend/systems backgrounds learning AI, or from ML backgrounds learning production engineering?"**
+
+*Why this is strong:* Shows you care about the people, not just the tech. Signals mentoring readiness. The answer also tells you a lot about what your day-to-day would actually look like.
+
+## Questions About Technology Choices
+
+**8. "I used Spring AI with the Bedrock Converse API, which gave me model-agnostic tool calling across Nova, Claude, and others. What's Agentforce's approach to model portability -- are agents tightly coupled to one model provider, or is there an abstraction layer so you can swap models as the landscape evolves?"**
+
+*Why this is strong:* Demonstrates architectural maturity -- you think about vendor lock-in and abstraction. Directly maps your Spring AI Converse API choice to their design philosophy.
+
+**9. "The job mentions LangChain, LlamaIndex, and serving libraries like vLLM. Is Agentforce built on top of an existing orchestration framework, or did the team build a custom agent runtime? What drove that decision?"**
+
+*Why this is strong:* Shows you know the ecosystem landscape and want to understand their build-vs-buy philosophy. The answer reveals a lot about the technical depth of the role.
+
+## Questions About Impact & Growth
+
+**10. "The posting says customers are 'rapidly expanding their use cases.' Can you share an example of a use case that surprised you -- something a customer did with Agentforce that the team hadn't originally designed for?"**
+
+*Why this is strong:* Shows genuine curiosity about customer impact. The answer tells you how flexible/extensible the product really is. Interviewers love talking about unexpected wins.
+
+**11. "What does the path from Senior to Lead look like on this team? Is it primarily measured by technical depth (owning a subsystem end-to-end), breadth of impact (cross-team architecture), or people leadership?"**
+
+*Why this is strong:* Shows career intentionality without being presumptuous. Helps you understand if this role aligns with your growth direction.
+
+## Tips for Delivery
+
+- Pick **3-4 of these** for the actual interview (you won't have time for all 11).
+- Lead with **one architecture question** (1, 2, or 3) to establish technical credibility.
+- Include **one safety/reliability question** (4 or 5) -- this is critical for the Salesforce trust brand.
+- Close with **one team/growth question** (6, 7, or 11) to show you're evaluating fit, not just trying to impress.
